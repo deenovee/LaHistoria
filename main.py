@@ -4,12 +4,14 @@ from CTkListbox import *
 from CTkPDFViewer import *
 from db import Database
 from PIL import Image, ImageTk
+import tkinter as tk
+import ttkvideos as ttkv
+from pygame import mixer
 
 # Initialize the custom tkinter module
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("green")
-
 
 # Initialize the database
 db = Database()
@@ -107,10 +109,58 @@ class App(ctk.CTk):
         # # You can add code to display the actual media content (e.g., image, video player, etc.) based on media_type
         if media_type.lower() == "articles":
             self.display_text(selected_item)
+        if media_type.lower() == "images":
+            self.display_image(selected_item)
+        # if media_type.lower() == "videos":
+        #     self.display_video(selected_item)
+        if media_type.lower() == "audio":
+            self.display_audio(selected_item)
 
     def display_text(self, file_path):
         pdf_viewer = CTkPDFViewer(self.middle_frame, file_path)
         pdf_viewer.pack(fill=ctk.BOTH, expand=True, padx=20, pady=20)
+
+    def display_image(self, file_path):
+        image = Image.open(file_path)
+        image = image.resize((500, 500), Image.Resampling.LANCZOS)
+        
+        # Convert the PIL image to a CTkImage
+        ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(500, 500))
+        
+        # Create a label to hold the image without any text
+        image_label = ctk.CTkLabel(self.middle_frame, image=ctk_image, text="")
+        image_label.pack(fill=ctk.BOTH, expand=True, padx=20)
+
+
+    # Not working
+    # def display_video(self, file_path):
+    #     video_label = ctk.CTkLabel(self.middle_frame, text="")
+    #     video_label.pack(fill=ctk.BOTH, expand=True, padx=20)
+    #     player = ttkv.Ttkvideos(file_path, video_label, loop=1)
+    #     player.play()
+
+    #     # Add a return button to go back to the list
+    #     return_button = ctk.CTkButton(self.middle_frame, text="Return", command=self.return_to_list)
+    #     return_button.pack(anchor="nw", padx=10, pady=10)
+
+    def display_audio(self, file_path):
+        mixer.init()
+        mixer.music.load(file_path)
+        mixer.music.play()
+
+        #create slider for audio duration
+        audio_slider = ctk.CTkSlider(self.middle_frame, from_=0, to=100, orient="horizontal", length=500)
+        audio_slider.pack(pady=20)
+        audio_slider.set(50)
+
+        #create play and pause buttons
+        play_button = ctk.CTkButton(self.middle_frame, text="Play", command=lambda: mixer.music.unpause())
+        play_button.pack(pady=20)
+        pause_button = ctk.CTkButton(self.middle_frame, text="Pause", command=lambda: mixer.music.pause())
+
+        # Add a return button to go back to the list
+        return_button = ctk.CTkButton(self.middle_frame, text="Return", command=self.return_to_list)
+        return_button.pack(anchor="nw", padx=10, pady=10)
 
 
     def return_to_list(self):
